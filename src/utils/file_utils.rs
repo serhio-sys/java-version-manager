@@ -6,11 +6,10 @@ use crate::{config::{self, JAVA_HOME_KEY, PATH_KEY}, models::env_variable::{get_
 
 use super::print_utils::simple_print_line;
 
-const EMPTY_ENV_VAR: EnvVariable = EnvVariable{ variable_name: String::new(), path: String::new() };
-
 pub static GLOBAL_VARIABLES: Mutex<Vec<EnvVariable>> = Mutex::new(Vec::new());
 
 lazy_static!{
+    static ref EMPTY_ENV_VAR: EnvVariable = EnvVariable::create_instance("", "");
     static ref BASE_VAR_PATH: String = {
         let home_dir = std::env::var("USERPROFILE").unwrap_or(std::env::var("HOME").unwrap());
         let document_dir = Path::new(&home_dir).join(".bashrc");
@@ -19,10 +18,16 @@ lazy_static!{
     pub static ref FILE_CONTENT: String = extract_variables_from_file();
 }
 
+pub fn init_static() {
+    // Do not touch its for initialization!!
+    let _ = FILE_CONTENT.clone();
+    let _ = BASE_VAR_PATH.clone();
+    // Do not touch its for initialization!!
+}
 
 pub fn set_java_home(java_var: &EnvVariable) {
     let mut content = FILE_CONTENT.clone();
-    let java_home_var: EnvVariable = EnvVariable{variable_name:JAVA_HOME_KEY.to_string(), path: java_var.path.trim_end_matches('/').to_string() + "/bin"};
+    let java_home_var: EnvVariable = EnvVariable::create_instance(JAVA_HOME_KEY, (java_var.get_path().trim_end_matches('/').to_string() + "/bin").as_str());
     let mut path_var: EnvVariable;
     {
         let mut data = GLOBAL_VARIABLES.lock().unwrap();
@@ -38,7 +43,7 @@ pub fn set_java_home(java_var: &EnvVariable) {
         }
     }
     
-    path_var.path = format!("{}:${}", path_var.path.replace(format!(":${}", JAVA_HOME_KEY).as_str(), ""), java_home_var.variable_name);
+    path_var.set_path(format!("{}:${}", path_var.get_path().replace(format!(":${}", JAVA_HOME_KEY).as_str(), ""), java_home_var.get_variable_name()).as_str());
     content += format!("\n{}\n", java_home_var.get_export_string()).as_str();
     content += format!("{}", path_var.get_export_string()).as_str();
 
@@ -52,15 +57,15 @@ fn extract_variables_from_file() -> String {
     let mut content = read_to_string(File::open(BASE_VAR_PATH.as_str()).unwrap()).unwrap();
     let java_home = get_var_from_content(&content, JAVA_HOME_KEY);
     let path = get_var_from_content(&content, PATH_KEY);
-    add_and_remove_from_content(&mut content, &java_home.unwrap_or(EMPTY_ENV_VAR));
-    let mut unwrapped_path = path.unwrap_or(EMPTY_ENV_VAR);
+    add_and_remove_from_content(&mut content, &java_home.unwrap_or(EMPTY_ENV_VAR.clone()));
+    let mut unwrapped_path = path.unwrap_or(EMPTY_ENV_VAR.clone());
     add_and_remove_from_content(&mut content, &unwrapped_path);
-    unwrapped_path.path = unwrapped_path.path.clone().replace(format!(":${}", JAVA_HOME_KEY).as_str(), "");
+    unwrapped_path.set_path(unwrapped_path.get_path().replace(format!(":${}", JAVA_HOME_KEY).as_str(), "").as_str());
     return content.trim_end_matches("\n").to_string();
 }
 
 fn add_and_remove_from_content(content: &mut String, op_var: &EnvVariable) {
-    if *op_var == EMPTY_ENV_VAR {
+    if *op_var == EMPTY_ENV_VAR.clone() {
         return;
     }
     add_env_variable(&op_var);
@@ -70,7 +75,7 @@ fn add_and_remove_from_content(content: &mut String, op_var: &EnvVariable) {
 fn add_env_variable(op_var: &EnvVariable) {
     {
         let mut data = GLOBAL_VARIABLES.lock().unwrap();
-        data.push(EnvVariable{variable_name: op_var.variable_name.clone(), path: op_var.path.clone()});
+        data.push(EnvVariable::create_instance(op_var.get_variable_name(), op_var.get_path()));
     }
 }
 
@@ -80,7 +85,7 @@ fn get_var_from_content(content: &str, variable_name: &str) -> Option<EnvVariabl
             let line = content_line.to_string();
             let splited_line: Vec<String> = line.replace("export ", "").split("=").map(|s| s.to_owned()).collect();
             if let Some(val) = splited_line.get(1) {
-                return Some(EnvVariable { variable_name: variable_name.to_string(), path: val.clone()});
+                return Some(EnvVariable::create_instance(variable_name.to_string().as_str(), val.clone().as_str()));
             }
         }
     }

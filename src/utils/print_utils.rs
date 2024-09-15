@@ -36,7 +36,7 @@ pub fn print_success_var_action(msg: &str, java_version: &EnvVariable) {
     let _ = execute!(
         stdout(),
         SetAttribute(crossterm::style::Attribute::Bold),
-        Print(format!("[{}]", java_version.variable_name)),
+        Print(format!("[{}]", java_version.get_variable_name())),
         SetAttribute(crossterm::style::Attribute::Reset),
         Print(format!(": {}", msg)),
         MoveToNextLine(1),

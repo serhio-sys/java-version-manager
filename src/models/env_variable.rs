@@ -1,27 +1,30 @@
 use serde::{Serialize, Deserialize};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone, PartialEq)]
 pub struct EnvVariable {
-    pub variable_name: String,
-    pub path: String
-}
-
-impl PartialEq for EnvVariable {
-    fn eq(&self, other: &Self) -> bool {
-        self.variable_name == other.variable_name && self.path == other.path
-    }
-}
-
-impl Clone for  EnvVariable {
-
-    fn clone(&self) -> Self {
-        Self { variable_name: self.variable_name.clone(), path: self.path.clone() }
-    }
+    variable_name: String,
+    path: String
 }
 
 impl EnvVariable {
     pub fn get_export_string(&self) -> String {
         return format!("export {}={}", self.variable_name, self.path);
+    }
+
+    pub fn create_instance(var_name: &str, path: &str) -> EnvVariable {
+        return EnvVariable {variable_name: var_name.to_string(), path: path.to_string()};
+    }
+
+    pub fn get_variable_name(&self) -> &str {
+        return &self.variable_name;   
+    }
+
+    pub fn get_path(&self) -> &str {
+        return &self.path;   
+    }
+
+    pub fn set_path(&mut self, path: &str) {
+        self.path = path.to_string();   
     }
 }
 
