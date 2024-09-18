@@ -1,6 +1,5 @@
-use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
+use crossterm::terminal::{ disable_raw_mode, enable_raw_mode };
 use crossterm_input::input;
-
 
 pub mod print_utils;
 pub mod file_utils;

@@ -1,9 +1,9 @@
-use serde::{Serialize, Deserialize};
+use serde::{ Serialize, Deserialize };
 
 #[derive(Serialize, Deserialize, Clone, PartialEq)]
 pub struct EnvVariable {
     variable_name: String,
-    path: String
+    path: String,
 }
 
 impl EnvVariable {
@@ -12,19 +12,19 @@ impl EnvVariable {
     }
 
     pub fn create_instance(var_name: &str, path: &str) -> EnvVariable {
-        return EnvVariable {variable_name: var_name.to_string(), path: path.to_string()};
+        return EnvVariable { variable_name: var_name.to_string(), path: path.to_string() };
     }
 
     pub fn get_variable_name(&self) -> &str {
-        return &self.variable_name;   
+        return &self.variable_name;
     }
 
     pub fn get_path(&self) -> &str {
-        return &self.path;   
+        return &self.path;
     }
 
     pub fn set_path(&mut self, path: &str) {
-        self.path = path.to_string();   
+        self.path = path.to_string();
     }
 }
 

@@ -1,8 +1,13 @@
 use std::io::stdout;
 
-use crossterm::{cursor::{self, MoveToNextLine}, execute, style::{Print, SetAttribute, SetForegroundColor}, terminal::{Clear, ClearType}};
+use crossterm::{
+    cursor::{ self, MoveToNextLine },
+    execute,
+    style::{ Print, SetAttribute, SetForegroundColor },
+    terminal::{ Clear, ClearType },
+};
 
-use crate::models::{self, env_variable::EnvVariable, menu_command::MenuCommand};
+use crate::program::models::{ self, env_variable::EnvVariable, menu_command::MenuCommand };
 
 use super::print_utils;
 
@@ -37,34 +42,43 @@ pub fn print_available_java_versions(java_versions: Vec<EnvVariable>, selected: 
     for index in 0..java_versions.len() {
         let java_version = java_versions.get(index).unwrap();
         if index == selected {
-            print_selected_menu_item(format!("-> {}", java_version.get_variable_name()), format!(": {}", java_version.get_path()));
-        } else {  
-            print_menu_item(format!("{}", java_version.get_variable_name()), format!(": {}", java_version.get_path()));
+            print_selected_menu_item(
+                format!("-> {}", java_version.get_variable_name()),
+                format!(": {}", java_version.get_path())
+            );
+        } else {
+            print_menu_item(
+                format!("{}", java_version.get_variable_name()),
+                format!(": {}", java_version.get_path())
+            );
         }
     }
 }
 
-pub fn print_main_menu(selected: i32) -> Option<MenuCommand>{
+pub fn print_main_menu(selected: i32) -> Option<MenuCommand> {
     execute!(
         stdout(),
         Clear(crossterm::terminal::ClearType::All),
-        cursor::MoveTo(0,0),
+        cursor::MoveTo(0, 0),
         SetForegroundColor(crossterm::style::Color::Green),
         SetAttribute(crossterm::style::Attribute::Bold),
         Print("Java Version Manager"),
         MoveToNextLine(2),
         SetAttribute(crossterm::style::Attribute::Reset),
-        SetForegroundColor(crossterm::style::Color::Reset),
+        SetForegroundColor(crossterm::style::Color::Reset)
     ).unwrap();
     {
         let menu_items = models::menu_command::MENU_COMMANDS.lock().unwrap();
         let selected_menu_item = menu_items.get(selected as usize).unwrap();
         for index in 0..menu_items.len() {
             let menu_item = menu_items.get(index).unwrap();
-            if index == selected as usize {
-                print_selected_menu_item("-> ".to_string(), menu_item.get_command_name().to_string());
+            if index == (selected as usize) {
+                print_selected_menu_item(
+                    "-> ".to_string(),
+                    menu_item.get_command_name().to_string()
+                );
             } else {
-                print_menu_item(String::new(), menu_item.get_command_name().to_string())
+                print_menu_item(String::new(), menu_item.get_command_name().to_string());
             }
         }
         execute!(
@@ -75,7 +89,7 @@ pub fn print_main_menu(selected: i32) -> Option<MenuCommand>{
             SetAttribute(crossterm::style::Attribute::Reset),
             SetForegroundColor(crossterm::style::Color::Reset),
             Print("]"),
-            MoveToNextLine(1),
+            MoveToNextLine(1)
         ).unwrap();
         return Some(selected_menu_item.clone());
     }
