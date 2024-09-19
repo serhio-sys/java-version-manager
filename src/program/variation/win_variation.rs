@@ -1,17 +1,28 @@
-use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
-use winreg::{enums::{HKEY_LOCAL_MACHINE, KEY_READ, KEY_WRITE}, RegKey};
+#[cfg(windows)]
+use crossterm::event::{ self, Event, KeyCode, KeyEvent, KeyEventKind };
 
-use crate::program::{config::{ENV_VARIABLES, JAVA_HOME_KEY, PATH_KEY}, models::env_variable::{self}, utils};
+#[cfg(windows)]
+use winreg::{ enums::{ HKEY_LOCAL_MACHINE, KEY_READ, KEY_WRITE }, RegKey };
+
+#[cfg(windows)]
+use crate::program::{
+    config::{ ENV_VARIABLES, JAVA_HOME_KEY, PATH_KEY },
+    models::env_variable::{ self },
+    utils,
+};
 
 use super::BaseCommands;
 
 pub struct WinVariation();
 
 impl BaseCommands for WinVariation {
+    #[cfg(windows)]
     fn print_current_version(&self) {
         let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
-        let cur_ver = hklm.open_subkey("SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment").unwrap();
-        let java_home:Result<String, std::io::Error> = cur_ver.get_value(JAVA_HOME_KEY);
+        let cur_ver = hklm
+            .open_subkey("SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment")
+            .unwrap();
+        let java_home: Result<String, std::io::Error> = cur_ver.get_value(JAVA_HOME_KEY);
         if let Ok(value) = java_home {
             {
                 let java_versions = ENV_VARIABLES.lock().unwrap();
@@ -30,10 +41,16 @@ impl BaseCommands for WinVariation {
         }
     }
 
+    #[cfg(windows)]
     fn set_java_version(&self) {
         let mut selected: i32 = 0;
         let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
-        let cur_ver = hklm.open_subkey_with_flags("SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment", KEY_READ | KEY_WRITE).unwrap();
+        let cur_ver = hklm
+            .open_subkey_with_flags(
+                "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment",
+                KEY_READ | KEY_WRITE
+            )
+            .unwrap();
         {
             let java_versions = ENV_VARIABLES.lock().unwrap();
             if java_versions.is_empty() {
@@ -63,16 +80,27 @@ impl BaseCommands for WinVariation {
                                 selected += 1;
                             }
                         }
-                        KeyEvent { code: KeyCode::Enter, modifiers: _, kind: _, state: _ }  => {
+                        KeyEvent { code: KeyCode::Enter, modifiers: _, kind: _, state: _ } => {
                             let java_version = java_versions.get(selected as usize).unwrap();
-                            let java_home_old:Result<String, std::io::Error> = cur_ver.get_value(JAVA_HOME_KEY);
-                            let _ = cur_ver.set_value(JAVA_HOME_KEY, &(java_version.get_path().to_owned() + "\\bin"));
-                            let path:Result<String, std::io::Error> = cur_ver.get_value(PATH_KEY);
+                            let java_home_old: Result<String, std::io::Error> = cur_ver.get_value(
+                                JAVA_HOME_KEY
+                            );
+                            let _ = cur_ver.set_value(
+                                JAVA_HOME_KEY,
+                                &(java_version.get_path().to_owned() + "\\bin")
+                            );
+                            let path: Result<String, std::io::Error> = cur_ver.get_value(PATH_KEY);
                             if let Ok(value) = path {
                                 let mut new_value = value.clone();
                                 if let Ok(value_java_home) = java_home_old {
-                                    new_value = new_value.replace(format!(":{}", value_java_home).as_str(), "");
-                                    new_value = new_value.trim_end_matches(":").to_owned()+&java_version.get_path().to_owned() + "\\bin";
+                                    new_value = new_value.replace(
+                                        format!(":{}", value_java_home).as_str(),
+                                        ""
+                                    );
+                                    new_value =
+                                        new_value.trim_end_matches(":").to_owned() +
+                                        &java_version.get_path().to_owned() +
+                                        "\\bin";
                                 }
                                 let _ = cur_ver.set_value(PATH_KEY, &new_value);
                             }
@@ -84,7 +112,6 @@ impl BaseCommands for WinVariation {
                         _ => {}
                     }
                 }
-                
             }
         }
     }

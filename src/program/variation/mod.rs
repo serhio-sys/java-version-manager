@@ -1,10 +1,10 @@
-use std::{io::stdout, path::Path};
+use std::{ io::stdout, path::Path };
 
 use crossterm::{ cursor::MoveToNextLine, execute, style::{ Color, Print, SetAttribute } };
 
 use crate::program::{ config::ENV_VARIABLES, utils };
 
-use super::models::env_variable::{self, get_java_version_index_by_name, EnvVariable};
+use super::models::env_variable::{ self, get_java_version_index_by_name, EnvVariable };
 
 pub(super) mod linux_variation;
 pub(super) mod win_variation;
@@ -40,7 +40,7 @@ pub(super) trait BaseCommands: Sync {
         }
     }
 
-    fn print_current_version(&self);
+    fn print_current_version(&self) {}
 
     fn add_java_version(&self) {
         utils::print_utils::simple_print_line("Enter the path variable name: ");
@@ -108,7 +108,7 @@ pub(super) trait BaseCommands: Sync {
         utils::file_utils::save_to_file();
     }
 
-    fn set_java_version(&self);
+    fn set_java_version(&self) {}
 }
 
 impl BaseCommands for Commands {

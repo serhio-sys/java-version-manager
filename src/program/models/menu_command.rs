@@ -5,8 +5,10 @@ use lazy_static::lazy_static;
 
 use crate::program::variation::BaseCommands;
 #[allow(unused_imports)]
-use crate::program::{utils::print_utils::press_to_continue, variation::{linux_variation::LinuxVariation, win_variation::WinVariation, Commands}};
-
+use crate::program::{
+    utils::print_utils::press_to_continue,
+    variation::{ linux_variation::LinuxVariation, win_variation::WinVariation, Commands },
+};
 
 lazy_static! {
     static ref COMMANDS: Commands = {

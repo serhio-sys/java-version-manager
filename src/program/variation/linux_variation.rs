@@ -1,9 +1,8 @@
-use crossterm::
-    event::{ read, Event, KeyCode, KeyEvent }
-;
+use crossterm::event::{ read, Event, KeyCode, KeyEvent };
 
 use crate::program::{
-    config::{ ENV_VARIABLES, JAVA_HOME_KEY }, utils::{ self, file_utils::GLOBAL_VARIABLES }
+    config::{ ENV_VARIABLES, JAVA_HOME_KEY },
+    utils::{ self, file_utils::GLOBAL_VARIABLES },
 };
 
 use super::{ env_variable::{ self, EnvVariable }, BaseCommands };

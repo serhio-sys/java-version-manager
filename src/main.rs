@@ -1,5 +1,6 @@
 use crossterm::{
-    event::{ self, Event, KeyCode, KeyEvent, KeyEventKind }, terminal::{ disable_raw_mode, enable_raw_mode }
+    event::{ self, Event, KeyCode, KeyEvent, KeyEventKind },
+    terminal::{ disable_raw_mode, enable_raw_mode },
 };
 
 mod program;
@@ -28,7 +29,12 @@ fn program() {
                     {
                         if
                             selected + 1 <
-                            (program::models::menu_command::MENU_COMMANDS.lock().unwrap().len() as i32)
+                            (
+                                program::models::menu_command::MENU_COMMANDS
+                                    .lock()
+                                    .unwrap()
+                                    .len() as i32
+                            )
                         {
                             selected += 1;
                         }
@@ -46,6 +52,5 @@ fn program() {
                 _ => {}
             }
         }
-        
     }
 }

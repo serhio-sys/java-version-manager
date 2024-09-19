@@ -2,7 +2,7 @@ use std::io::stdout;
 
 use crossterm::{
     cursor::MoveToNextLine,
-    event::{read, Event, KeyEventKind},
+    event::{ read, Event, KeyEventKind },
     execute,
     style::{ Color, Print, SetAttribute, SetForegroundColor },
 };
@@ -17,7 +17,7 @@ pub fn press_to_continue() {
         SetAttribute(crossterm::style::Attribute::Reset),
         MoveToNextLine(1)
     );
-    loop {    
+    loop {
         if let Event::Key(event) = read().unwrap() {
             if let KeyEventKind::Release = event.kind {
                 continue;
