@@ -26,6 +26,7 @@ lazy_static! {
     pub static ref FILE_CONTENT: String = extract_variables_from_file();
 }
 
+#[allow(dead_code)]
 pub fn init_static() {
     // Do not touch its for initialization!!
     let _ = FILE_CONTENT.clone();
@@ -147,9 +148,8 @@ pub fn read_file() -> String {
     );
     if let Ok(string_content) = content {
         return string_content;
-    } else {
-        panic!("Error in time reading file.");
     }
+    return "".to_string();
 }
 
 fn create_or_get_file_by_path(path: &str) -> Result<File, Error> {

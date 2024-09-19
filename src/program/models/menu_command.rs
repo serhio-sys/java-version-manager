@@ -3,12 +3,10 @@ use std::{ io::stdout, sync::Mutex };
 use crossterm::{ cursor, execute, terminal::{ Clear, ClearType } };
 use lazy_static::lazy_static;
 
-use crate::program::utils::print_utils::press_to_continue;
-
-use super::variation::{ BaseCommands, Commands };
-use super::linux_variation::LinuxVariation;
+use crate::program::variation::BaseCommands;
 #[allow(unused_imports)]
-use super::win_variation::WinVariation;
+use crate::program::{utils::print_utils::press_to_continue, variation::{linux_variation::LinuxVariation, win_variation::WinVariation, Commands}};
+
 
 lazy_static! {
     static ref COMMANDS: Commands = {

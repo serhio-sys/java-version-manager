@@ -2,7 +2,7 @@ use std::io::stdout;
 
 use crossterm::{
     cursor::MoveToNextLine,
-    event::read,
+    event::{read, Event, KeyEventKind},
     execute,
     style::{ Color, Print, SetAttribute, SetForegroundColor },
 };
@@ -17,7 +17,15 @@ pub fn press_to_continue() {
         SetAttribute(crossterm::style::Attribute::Reset),
         MoveToNextLine(1)
     );
-    read().unwrap();
+    loop {    
+        if let Event::Key(event) = read().unwrap() {
+            if let KeyEventKind::Release = event.kind {
+                continue;
+            } else {
+                break;
+            }
+        }
+    }
 }
 
 pub fn print_bolt_line_with_color(string: &str, color: Option<Color>) {
