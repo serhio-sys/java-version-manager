@@ -20,7 +20,7 @@ Required rust installed and other extensions like cargo in this case.
 
 ### After just simply: `cargo run`
 
-### Another way by build and startig manually:
+### Another way by build and starting manually:
 
 - `cargo build`
 
