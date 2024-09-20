@@ -43,6 +43,8 @@ impl BaseCommands for WinVariation {
 
     #[cfg(windows)]
     fn set_java_version(&self) {
+        use std::process::Command;
+
         let mut selected: i32 = 0;
         let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
         let cur_ver = hklm
@@ -103,6 +105,9 @@ impl BaseCommands for WinVariation {
                                         "\\bin";
                                 }
                                 let _ = cur_ver.set_value(PATH_KEY, &new_value);
+                                Command::new("setx")
+                                .arg("Path")
+                                .arg("\"Path\"").spawn().unwrap();
                             }
                             utils::print_utils::simple_print_line(
                                 "Java version was setted successfully"

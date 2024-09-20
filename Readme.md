@@ -6,6 +6,8 @@ Simple rust console application that simplify setting and switching java version
 
 - **LINUX**
 
+- **Windows 8/10/11**
+
 ## How to get started (developers edition):
 
 Required rust installed and other extensions like cargo in this case.
