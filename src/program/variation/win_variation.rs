@@ -2,7 +2,7 @@
 use crossterm::event::{ self, Event, KeyCode, KeyEvent, KeyEventKind };
 
 #[cfg(windows)]
-use winreg::{ enums::{ HKEY_LOCAL_MACHINE, KEY_READ, KEY_WRITE }, RegKey };
+use winreg::{ enums::{ HKEY_CURRENT_USER, KEY_READ, KEY_WRITE }, RegKey };
 
 #[cfg(windows)]
 use crate::program::{
@@ -18,9 +18,9 @@ pub struct WinVariation();
 impl BaseCommands for WinVariation {
     #[cfg(windows)]
     fn print_current_version(&self) {
-        let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
+        let hklm = RegKey::predef(HKEY_CURRENT_USER);
         let cur_ver = hklm
-            .open_subkey("SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment")
+            .open_subkey("Environment")
             .unwrap();
         let java_home: Result<String, std::io::Error> = cur_ver.get_value(JAVA_HOME_KEY);
         if let Ok(value) = java_home {
@@ -43,13 +43,11 @@ impl BaseCommands for WinVariation {
 
     #[cfg(windows)]
     fn set_java_version(&self) {
-        use std::process::Command;
-
         let mut selected: i32 = 0;
-        let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
+        let hklm = RegKey::predef(HKEY_CURRENT_USER);
         let cur_ver = hklm
             .open_subkey_with_flags(
-                "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment",
+                "Environment",
                 KEY_READ | KEY_WRITE
             )
             .unwrap();
@@ -85,6 +83,12 @@ impl BaseCommands for WinVariation {
                         KeyEvent { code: KeyCode::Enter, modifiers: _, kind: _, state: _ } => {
                             let java_version = java_versions.get(selected as usize).unwrap();
                             let java_home_old: Result<String, std::io::Error> = cur_ver.get_value(
+                                "Path"
+                            );
+                            if let Ok(unwrapped) = java_home_old {
+                                utils::print_utils::simple_print_line(&unwrapped);
+                            }
+                            let java_home_old: Result<String, std::io::Error> = cur_ver.get_value(
                                 JAVA_HOME_KEY
                             );
                             let _ = cur_ver.set_value(
@@ -96,7 +100,7 @@ impl BaseCommands for WinVariation {
                                 let mut new_value = value.clone();
                                 if let Ok(value_java_home) = java_home_old {
                                     new_value = new_value.replace(
-                                        format!(":{}", value_java_home).as_str(),
+                                        format!(";{}", value_java_home).as_str(),
                                         ""
                                     );
                                     new_value =
@@ -105,9 +109,6 @@ impl BaseCommands for WinVariation {
                                         "\\bin";
                                 }
                                 let _ = cur_ver.set_value(PATH_KEY, &new_value);
-                                Command::new("setx")
-                                .arg("Path")
-                                .arg("\"Path\"").spawn().unwrap();
                             }
                             utils::print_utils::simple_print_line(
                                 "Java version was setted successfully"
