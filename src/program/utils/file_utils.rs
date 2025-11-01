@@ -2,7 +2,7 @@ use std::{
     fs::{ self, File, OpenOptions },
     io::{ read_to_string, Error, Write },
     path::Path,
-    sync::Mutex,
+    sync::{Arc, RwLock},
 };
 
 use lazy_static::lazy_static;
@@ -14,8 +14,6 @@ use crate::program::{
 
 use super::print_utils::simple_print_line;
 
-pub static GLOBAL_VARIABLES: Mutex<Vec<EnvVariable>> = Mutex::new(Vec::new());
-
 lazy_static! {
     static ref EMPTY_ENV_VAR: EnvVariable = EnvVariable::create_instance("", "");
     static ref BASE_VAR_PATH: String = {
@@ -24,6 +22,7 @@ lazy_static! {
         return document_dir.as_path().to_str().unwrap().to_string();
     };
     pub static ref FILE_CONTENT: String = extract_variables_from_file();
+    pub static ref GLOBAL_VARIABLES: Arc<RwLock<Vec<EnvVariable>>> = Arc::new(RwLock::new(Vec::new()));
 }
 
 #[allow(dead_code)]
@@ -31,18 +30,19 @@ pub fn init_static() {
     // Do not touch its for initialization!!
     let _ = FILE_CONTENT.clone();
     let _ = BASE_VAR_PATH.clone();
+    let _ = GLOBAL_VARIABLES.clone();
     // Do not touch its for initialization!!
 }
 
 pub fn set_java_home(java_var: &EnvVariable) {
     let mut content = FILE_CONTENT.clone();
+    let mut data = GLOBAL_VARIABLES.write().unwrap();
     let java_home_var: EnvVariable = EnvVariable::create_instance(
         JAVA_HOME_KEY,
         (java_var.get_path().trim_end_matches('/').to_string() + "/bin").as_str()
     );
     let mut path_var: EnvVariable;
     {
-        let mut data = GLOBAL_VARIABLES.lock().unwrap();
         let mut index = get_java_version_index_by_name(PATH_KEY, &data);
         if index == -1 {
             panic!("Path variable not found... Check .bashrc file for containing PATH variable");
@@ -96,10 +96,8 @@ fn add_and_remove_from_content(content: &mut String, op_var: &EnvVariable) {
 }
 
 fn add_env_variable(op_var: &EnvVariable) {
-    {
-        let mut data = GLOBAL_VARIABLES.lock().unwrap();
-        data.push(EnvVariable::create_instance(op_var.get_variable_name(), op_var.get_path()));
-    }
+    let mut data = GLOBAL_VARIABLES.write().unwrap();
+    data.push(EnvVariable::create_instance(op_var.get_variable_name(), op_var.get_path()));
 }
 
 fn get_var_from_content(content: &str, variable_name: &str) -> Option<EnvVariable> {
@@ -126,7 +124,7 @@ fn get_var_from_content(content: &str, variable_name: &str) -> Option<EnvVariabl
 
 pub fn save_to_file() {
     {
-        let data = config::ENV_VARIABLES.lock().unwrap();
+        let data = config::ENV_VARIABLES.read().unwrap();
         let data_string = serde_json::to_string_pretty(&*data);
         let unwrapped_data_string = data_string.unwrap();
         let file = File::create(config::PATH_TO_SAVE_FILE.as_str())

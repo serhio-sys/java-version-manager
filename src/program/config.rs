@@ -1,4 +1,4 @@
-use std::{ path::Path, sync::Mutex };
+use std::{ path::Path, sync::{Arc, RwLock} };
 
 use lazy_static::lazy_static;
 
@@ -23,17 +23,15 @@ lazy_static! {
         );
         return document_dir.as_path().to_str().unwrap().to_string();
     };
-}
 
-pub static ENV_VARIABLES: Mutex<Vec<EnvVariable>> = Mutex::new(Vec::new());
+    pub static ref ENV_VARIABLES: Arc<RwLock<Vec<EnvVariable>>> = Arc::new(RwLock::new(Vec::new()));
+}
 
 pub fn initialize_versions() {
     #[cfg(target_os = "linux")]
     file_utils::init_static();
     let data = read_file();
     let parsed = serde_json::from_str(&data).unwrap_or(Vec::new());
-    {
-        let mut java_versions = ENV_VARIABLES.lock().unwrap();
-        *java_versions = parsed;
-    }
+    let mut java_versions = ENV_VARIABLES.write().unwrap();
+    *java_versions = parsed;
 }

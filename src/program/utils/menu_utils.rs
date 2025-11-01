@@ -7,7 +7,7 @@ use crossterm::{
     terminal::{ Clear, ClearType },
 };
 
-use crate::program::models::{ self, env_variable::EnvVariable, menu_command::MenuCommand };
+use crate::program::{models::{ self, env_variable::EnvVariable, menu_command::MenuCommand }, utils};
 
 use super::print_utils;
 
@@ -67,30 +67,40 @@ pub fn print_main_menu(selected: i32) -> Option<MenuCommand> {
         SetAttribute(crossterm::style::Attribute::Reset),
         SetForegroundColor(crossterm::style::Color::Reset)
     ).unwrap();
-    {
-        let menu_items = models::menu_command::MENU_COMMANDS.lock().unwrap();
-        let selected_menu_item = menu_items.get(selected as usize).unwrap();
-        for index in 0..menu_items.len() {
-            let menu_item = menu_items.get(index).unwrap();
-            if index == (selected as usize) {
-                print_selected_menu_item(
-                    "-> ".to_string(),
-                    menu_item.get_command_name().to_string()
-                );
-            } else {
-                print_menu_item(String::new(), menu_item.get_command_name().to_string());
-            }
+    let menu_items = models::menu_command::MENU_COMMANDS.read().unwrap();
+    let selected_menu_item = menu_items.get(selected as usize).unwrap();
+    for index in 0..menu_items.len() {
+        let menu_item = menu_items.get(index).unwrap();
+        if index == (selected as usize) {
+            print_selected_menu_item(
+                "-> ".to_string(),
+                menu_item.get_command_name().to_string()
+            );
+        } else {
+            print_menu_item(String::new(), menu_item.get_command_name().to_string());
         }
-        execute!(
-            stdout(),
-            Print("To exit program just press - ["),
-            SetAttribute(crossterm::style::Attribute::Bold),
-            Print("ESC"),
-            SetAttribute(crossterm::style::Attribute::Reset),
-            SetForegroundColor(crossterm::style::Color::Reset),
-            Print("]"),
-            MoveToNextLine(1)
-        ).unwrap();
-        return Some(selected_menu_item.clone());
     }
+    execute!(
+        stdout(),
+        Print("To exit program just press - ["),
+        SetAttribute(crossterm::style::Attribute::Bold),
+        Print("ESC"),
+        SetAttribute(crossterm::style::Attribute::Reset),
+        SetForegroundColor(crossterm::style::Color::Reset),
+        Print("]"),
+        MoveToNextLine(1)
+    ).unwrap();
+
+    #[cfg(windows)] {
+        utils::print_utils::simple_print_line(
+        "ℹ️  To refresh your current shell without reopening it:"
+        );
+        utils::print_utils::simple_print_line(
+            "CMD: for /f \"usebackq tokens=2,*\" %A in (`reg query \"HKCU\\Environment\" /v PATH`) do set PATH=%B"
+        );
+        utils::print_utils::simple_print_line(
+            "PowerShell: $env:Path = [System.Environment]::GetEnvironmentVariable(\"Path\", \"Machine\") + ';' + [System.Environment]::GetEnvironmentVariable(\"Path\", \"User\")"
+        );
+    }
+    return Some(selected_menu_item.clone());
 }

@@ -1,4 +1,4 @@
-use std::{ io::stdout, sync::Mutex };
+use std::{ io::stdout, sync::{Arc, RwLock} };
 
 use crossterm::{ cursor, execute, terminal::{ Clear, ClearType } };
 use lazy_static::lazy_static;
@@ -21,7 +21,7 @@ lazy_static! {
             return Commands::LinuxCommands(LinuxVariation {});
         }
     };
-    pub static ref MENU_COMMANDS: Mutex<Vec<MenuCommand>> = {
+    pub static ref MENU_COMMANDS: Arc<RwLock<Vec<MenuCommand>>> = {
         let mut commands: Vec<MenuCommand> = Vec::new();
         commands.push(
             MenuCommand::create_instance("Print saved versions", || COMMANDS.print_saved_versions())
@@ -40,7 +40,7 @@ lazy_static! {
         commands.push(
             MenuCommand::create_instance("Set java version", || COMMANDS.set_java_version())
         );
-        return Mutex::new(commands);
+        return Arc::new(RwLock::new(commands));
     };
 }
 
