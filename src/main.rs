@@ -26,18 +26,10 @@ fn program() {
                     }
                 }
                 KeyEvent { code: KeyCode::Down, modifiers: _, kind: _, state: _ } => {
+                    let total_commands_size = program::models::menu_command::MENU_COMMANDS.read().unwrap().len() as i32;
+                    if selected + 1 < total_commands_size
                     {
-                        if
-                            selected + 1 <
-                            (
-                                program::models::menu_command::MENU_COMMANDS
-                                    .lock()
-                                    .unwrap()
-                                    .len() as i32
-                            )
-                        {
-                            selected += 1;
-                        }
+                        selected += 1;
                     }
                 }
                 KeyEvent { code: KeyCode::Enter, modifiers: _, kind: _, state: _ } => {
