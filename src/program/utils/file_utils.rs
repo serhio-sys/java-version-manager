@@ -9,7 +9,7 @@ use lazy_static::lazy_static;
 
 use crate::program::{
     config::{ self, JAVA_HOME_KEY, PATH_KEY },
-    models::env_variable::{ get_java_version_index_by_name, EnvVariable },
+    models::env_variable::{ EnvVariable, get_java_version_index_by_name },
 };
 
 use super::print_utils::simple_print_line;
@@ -123,20 +123,19 @@ fn get_var_from_content(content: &str, variable_name: &str) -> Option<EnvVariabl
 }
 
 pub fn save_to_file() {
-    {
-        let data = config::ENV_VARIABLES.read().unwrap();
-        let data_string = serde_json::to_string_pretty(&*data);
-        let unwrapped_data_string = data_string.unwrap();
-        let file = File::create(config::PATH_TO_SAVE_FILE.as_str())
-            .unwrap()
-            .write_all(unwrapped_data_string.as_bytes());
-        match file {
-            Ok(_) => {
-                simple_print_line("Data saved to file successfully");
-            }
-            Err(e) => panic!("Error saving data to file: {}", e),
+    let data = config::ENV_VARIABLES.read().unwrap();
+    let data_string = serde_json::to_string_pretty(&*data);
+    let unwrapped_data_string = data_string.unwrap();
+    let file = File::create(config::PATH_TO_SAVE_FILE.as_str())
+        .unwrap()
+        .write_all(unwrapped_data_string.as_bytes());
+    match file {
+        Ok(_) => {
+            simple_print_line("Data saved to file successfully");
         }
+        Err(e) => panic!("Error saving data to file: {}", e),
     }
+    drop(data);
     config::initialize_versions();
 }
 

@@ -2,7 +2,7 @@ use std::{ io::stdout, path::Path };
 
 use crossterm::{ cursor::MoveToNextLine, execute, style::{ Color, Print, SetAttribute } };
 
-use crate::program::{ config::ENV_VARIABLES, utils };
+use crate::program::{ config::ENV_VARIABLES, utils::{self} };
 
 use super::models::env_variable::{ self, get_java_version_index_by_name, EnvVariable };
 
@@ -61,6 +61,7 @@ pub(super) trait BaseCommands: Sync {
         let path = utils::read_line();
         if Path::new(path.as_str()).exists() {
             let var_name_msg = &format!("[{}] was added successfully.", var_name.as_str());
+            drop(java_versions);
             save_java_version(EnvVariable::create_instance(var_name.as_str(), path.as_str()));
             utils::print_utils::print_bolt_line_with_color(var_name_msg.as_str(), None);
         } else {
@@ -99,6 +100,7 @@ pub(super) trait BaseCommands: Sync {
                 &java_version
             );
         }
+        drop(java_versions);
         utils::file_utils::save_to_file();
     }
 
@@ -147,5 +149,6 @@ pub(super) fn save_java_version(java_version: EnvVariable) {
     } else {
         java_versions.push(java_version);
     }
+    drop(java_versions);
     utils::file_utils::save_to_file();
 }
